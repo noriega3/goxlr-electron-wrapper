@@ -1,0 +1,127 @@
+const { Tray, Menu, app, BrowserWindow, ipcMain } = require("electron");
+const path = require("path");
+const { exec } = require("child_process");
+const waitPort = require("wait-port");
+const { spawn } = require('node:child_process');
+
+const params = {
+  host: "localhost",
+  port: 14564,
+  timeout: 10,
+};
+let win;
+let appIcon;
+const iconpath = path.join(__dirname, "logoTemplate.png");
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 1048,
+    height: 720,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+  appIcon = new Tray(iconpath);
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Show App",
+      click: function () {
+        win.show();
+      },
+    },
+    {
+      label: "Refresh Settings Page",
+      click: function () {
+        win.loadURL("http://localhost:14564/");
+      },
+    },
+    {
+      label: "Relaunch GoXLR Utility",
+      click: function () {
+        exec("killall goxlr-daemon");
+
+        setTimeout(function(){
+            exec("/Users/bnori/Documents/GitHub/GoXlr-Macos/Dependices/GoXLR-Utility/target/debug/goxlr-daemon")
+        }, 5000)
+      },
+    },
+    {
+      label: "Quit",
+      click: function () {
+        exec("killall goxlr-daemon", (error, stdout, stderr) => {
+          if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+          }
+          if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+          }
+          console.log(`stdout: ${stdout}`);
+        });
+        win.destroy();
+        app.quit();
+      },
+    },
+  ]);
+
+  appIcon.setContextMenu(contextMenu);
+
+  win.on("minimize", function (event) {
+    event.preventDefault();
+    win.hide();
+  });
+
+  win.on("close", function (event) {
+    event.preventDefault();
+    win.hide();
+  });
+  win.on("show", function (event) {
+    //appIcon.setHighlightMode('always')
+  });
+
+  exec(
+    "/Users/bnori/Documents/GitHub/GoXlr-Macos/Dependices/GoXLR-Utility/target/debug/goxlr-daemon",
+    (error, stdout, stderr) => {
+      if (error) {
+        console.log(`error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+    }
+  );
+
+  waitPort(params)
+    .then(({ open, ipVersion }) => {
+      if (open) {
+        console.log(`The port is now open on IPv${ipVersion}!`);
+        win.loadURL("http://localhost:14564/");
+      } else console.log("The port did not open before the timeout...");
+    })
+    .catch((err) => {
+      console.err(
+        `An unknown error occured while waiting for the port: ${err}`
+      );
+    });
+}
+
+app.whenReady().then(() => {
+  createWindow();
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+/*app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
+    app.quit();
+  }
+});*/
