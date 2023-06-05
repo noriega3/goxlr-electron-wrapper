@@ -18,7 +18,7 @@ export const initWindow = () => {
 
   initTray(mainWindow)
 
-  mainWindow.on("minimize", function (event) {
+  mainWindow.on("minimize", function (event: { preventDefault: () => void; }) {
     event.preventDefault();
     mainWindow.hide();
   });

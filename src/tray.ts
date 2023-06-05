@@ -1,11 +1,12 @@
 import { app, Tray, Menu, BrowserWindow } from "electron";
 import { Constants } from "./constants";
-import picture from './item.png'
+import picture from '../assets/item.png'
 const xlr = require('./xlr');
 
 
-export const initTray = (win : BrowserWindow) => {
+export const initTray = (win: BrowserWindow) : Boolean => {
     const appTray = new Tray(picture);
+
     const contextMenu = Menu.buildFromTemplate([
       {
         label: "Show App",
@@ -22,7 +23,7 @@ export const initTray = (win : BrowserWindow) => {
       {
         label: "Relaunch GoXLR Utility",
         click: function () {
-            xlr.stop()  
+            xlr.stop()
           setTimeout(function(){
             xlr.start()
           }, 10000)
@@ -37,6 +38,7 @@ export const initTray = (win : BrowserWindow) => {
         },
       },
     ]);
-  
+
     appTray.setContextMenu(contextMenu);
+    return true
 };
