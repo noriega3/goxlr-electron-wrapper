@@ -1,11 +1,13 @@
 import { app, Tray, Menu, BrowserWindow } from "electron";
 import { Constants } from "./constants";
-import picture from '../assets/item.png'
+import * as path from "path";
 const xlr = require('./xlr');
+
+const ICON_PATH = path.join(__dirname, "../logoTemplate.png");
 
 
 export const initTray = (win: BrowserWindow) : Boolean => {
-    const appTray = new Tray(picture);
+    const appTray = new Tray(ICON_PATH);
 
     const contextMenu = Menu.buildFromTemplate([
       {
